@@ -1,0 +1,43 @@
+(
+    # functions and fibbonacci
+    (proc fibb ((num iterations)) None ( # proc = returns None; func = returns something
+        ((Num a) = 0)
+        ((Num b) = 1)
+        ((Num t) = 0)
+        ((Num count) = 0)
+
+        (while true (
+            (t = b)
+            (b = (a + b))
+            (a = t)
+
+            (@print(a))
+
+            (count = (count + 1))
+            (if (count >= iterations) (
+                (return a)
+            ))
+        ))
+    ))
+
+    # objects
+    (struct Dog () () ( # struct = no special types; object = has special type thing (for example Array<Num>)
+        (Num pee_count)
+    ))
+
+    (implement Dog (
+        (func pee(Dog self) (
+            (self.pee_count = (self.pee_count + 1))
+            (@print("Peed!"))
+        ))
+    ))
+
+    # conditionals
+    (func fibb_recursive(Num n) Num (
+        (if (n <= 1) ( 
+            (return n)
+        ) else ( # note that the else is inside the same parenthesis as the if
+            (return (fibb_recursive((n - 1)) + fibb_recursive((n - 1))))
+        ))
+    ))
+)
