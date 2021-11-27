@@ -47,7 +47,7 @@ class Lexer:
         else:
             code = raw
 
-        stream = Reader("".join(code)) # TODO fix lexer to not use joiners and make it work with TISP
+        stream = Reader("".join(code))
         tokens: list[str] = []
         token  = ""
 
