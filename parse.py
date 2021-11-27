@@ -3,7 +3,7 @@ from typing import Any
 from copy import deepcopy as copy
 
 class ParserToken(Sequence):
-    def __init__(self, type: str, data: dict[str, Any], raw: list[str]):
+    def __init__(self, type: str, data: dict[str, Any], raw: list[str | Any]):
         self.type = type
         self.data = data
         self.raw = raw
@@ -18,7 +18,7 @@ class ParserToken(Sequence):
         if len(self) > 3:
             newline = "\n"
 
-            return f"({self.type}:{newline}{f', {newline}'.join([f'{x}' for x in self.raw])}{newline})"
+            return f"({self.type}:{newline}{f', {newline}'.join([f'{x.repr()}' for x in self.raw])}{newline})"
         else:
             return f"({self.type}: {[x for x in self.raw]})"
 
