@@ -2,75 +2,162 @@ from tools import *
 from typing import Any
 from copy import deepcopy as copy
 
-class ParserToken:
+class ParserToken(Sequence):
     def __init__(self, type: str, data: dict[str, Any], raw: list[str]):
         self.type = type
         self.data = data
         self.raw = raw
 
-class ParserRule:
-    def __init__(self, type: str, childs: list = [], array: list[str] = [], is_name: bool = False, is_number: bool = False, numerous: bool = False, raw: str = "BEAN"):
-        self.type = type
+    def __getitem__(self, index: int) -> T:
+        return self.raw[index]
 
-        self.childs = childs
-        self.array = array
-        self.is_name = is_name
-        self.is_number = is_number
-        self.numerous = numerous
-        self.raw = raw
-        self.is_optional = False
+    def __len__(self) -> int:
+        return len(self.raw)
 
-    def optional(self):
-        copied = copy(self)
-        copied.is_optional = True
+    def __repr__(self) -> str:
+        if len(self) > 3:
+            newline = "\n"
 
-        return copied
+            return f"({self.type}:{newline}{f', {newline}'.join([f'{x}' for x in self.raw])}{newline})"
+        else:
+            return f"({self.type}: {[x for x in self.raw]})"
 
-types = ["Num", "None"]
-used_tokens = [] # TODO fill out
+class Parser:
+    types = ["Num"]
+    vars  = []
+    funcs = ["bean"]
+    ops   = ["+", "-", "*", "/", "%", "&", "^", "|"]
 
-#* Rules
-def raw_rule(token: str) -> ParserRule: return ParserRule("raw", raw = token)
-type      = ParserRule("in_array", array = types)
-name      = ParserRule("not_in_array", array = used_tokens, is_name = True)
-number    = ParserRule("not_in_array", array = used_tokens, is_number = True)
-operation = ParserRule("in_array", array = [x for x in "+-*/%"])
-expr      = None
+    def __init__(self, tokens: Reader[str]) -> None:
+        self.tokens = tokens
 
-var_def    = ParserRule("childs", childs = [type, raw_rule(":"), name])
-var_set    = ParserRule("childs", childs = [expr, raw_rule("="), expr])
-var_free   = ParserRule("childs", childs = [raw_rule("free"), name])
-func_def   = ParserRule("childs", childs = []) # todo
-proc_def   = ParserRule("childs", childs = []) # todo
-var_return = ParserRule("childs", childs = [raw_rule("return"), expr])
+    def parenize(self, first: bool = True) -> list[str | list]:
+        if first:
+            first_token = self.tokens.read() # eat the first parenthesis
 
-# mathematical expressions
-var_op = None
-var_op_optional = None
-var_op = ParserRule("childs", childs = [expr, operation.optional(), var_op_optional])
-var_op_optional = var_op.optional()
+            if first_token != "(": error("first token wasnt a parenthesis")
 
-# var manipulation
-var_index = ParserRule("childs", childs = [expr, raw_rule("["), expr, raw_rule("]")])
-args = ParserRule("childs", childs = [var_def], numerous = True)
-func_call = ParserRule("childs", childs = [name, raw_rule("("), args, raw_rule(")")])
-var_access = ParserRule("childs", childs = [expr, raw_rule("."), expr])
+        # last token read is a paren
+        result: list[str | list] = []
 
-# todo conditionals, control flow, structs & objects
+        while True:
+            token = self.tokens.read()
 
-default_expr = ParserRule("choose", childs = [expr, var_def, var_set, var_free, func_def, proc_def, var_return, var_op, var_index, func_call, var_access])
-expr_array = ParserRule("childs", childs = [expr], numerous = True)
+            match token:
+                case ")":
+                    return result
 
-sub_expr = ParserRule("choose", childs = [default_expr, expr_array])
-paren_expr = ParserRule("childs", childs = [raw_rule("("), sub_expr, raw_rule(")")])
+                case "(":
+                    result.append(self.parenize(first = False)) # go down the line
 
-expr = ParserRule("choose", childs = [paren_expr, name, number])
-program = expr
+                case _:
+                    result.append(token)
 
-class Parser: # TODO # LL2 parser
-    def __init__(self, tokens: Reader[str], program: ParserRule) -> None:
-        self.tokens = tokens 
-        self.program = program
+    def find_token_type(self, token: ParserToken) -> str: # todo make it check if token is correct (length & types)
+        match len(token):
+            case 0:
+                return "empty"
+
+            case 1:
+                if token[0] in self.vars:
+                    token.data = {
+                        "var": token[0]
+                    }
+
+                    return "var"
+
+                elif type(token[0]) == ParserToken:
+                    return "var_arr"
+
+                else:
+                    token.data = {
+                        "imm": token[0]
+                    }
+
+                    return "imm"
+
+        if token[1] == "=": # var_set
+            token.data = {
+                "source": token[0], 
+                "dest"  : token[2]
+            }
+
+            return "var_set"
+
+        elif token[1] in self.ops:
+            return "var_op"
+
+        else:
+            first = token[0]
+
+            match first:
+                case "free" | "return":
+                    token.data = {"keyword": first}
+
+                    return f"var_{first}"
+
+                case "func" | "proc":
+                    token.data = {
+                        "func_type": token[0],
+                        "name"     : token[1],
+                        "ret_type" : token[2],
+                        "args"     : token[3],
+                        "code"     : token[4]
+                    }
+
+                    return f"{first}_def"
+
+                case _:
+                    if type(first) == str:
+                        if first in self.types:
+                            token.data = {
+                                "type": token[0],
+                                "name": token[1]
+                            }
+
+                            return "var_def"
+
+                        elif first in self.funcs:
+                            token.data = {
+                                "name": token[0],
+                                "args": token[1]
+                            }
+                            
+                            return "func_call"
+
+                    elements_are_singles = []
+                    for x in token.raw:
+                        if type(x) == str:
+                            if x.isnumeric() or x in self.vars:
+                                elements_are_singles.append(True)
+                            else:
+                                elements_are_singles.append(False)
+                        elif type(x) == ParserToken:
+                            elements_are_singles.append(True)
+
+                    if any(elements_are_singles):
+                        return "var_arr"
+
+        return "undefined"
+
+    def list_to_token(self, ls: list[str | list]) -> ParserToken:
+        result = ParserToken("undefined", {}, [])
+
+        for item in ls:
+            if type(item) == str:
+                result.raw.append(item)
+                
+            elif type(item) == list:
+                result.raw.append(self.list_to_token(item))
+
+        result.type = self.find_token_type(result)
+
+        return result
+
 
     def parse(self) -> list[ParserToken]:
-        exit() # todo
+        result_1 = self.parenize(self.tokens)
+
+        result_2 = self.list_to_token(result_1)
+
+        return result_2
