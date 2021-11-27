@@ -14,6 +14,10 @@ def error(msg):
 
     press_any_key()
 
+def ssert(expr, msg):
+    if not expr:
+        error(msg)
+
 def debug(msg):
     if config.debug:
         print(f"[yellow]\[debug]: {msg}")
