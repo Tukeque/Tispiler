@@ -67,14 +67,16 @@ class Compiler:
 
                 case "var_return":
                     pass
-                
+
                 case "var_op":
                     pass
-                
+
                 case "var":
                     pass
-                
+
                 case "imm":
                     pass
-                
-                
+
+    def output(self, file_name: str) -> None:
+        with open(file_name, "w") as f:
+            f.write("\n".join(self.funcs + self.main))
