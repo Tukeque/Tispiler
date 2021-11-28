@@ -25,7 +25,7 @@ class ParserToken(Sequence):
 class Parser:
     types = ["Num"]
     vars  = []
-    funcs = ["bean"]
+    funcs = []
     ops   = ["+", "-", "*", "/", "%", "&", "^", "|"]
 
     def __init__(self, tokens: Reader[str]) -> None:
@@ -53,7 +53,7 @@ class Parser:
                 case _:
                     result.append(token)
 
-    def find_token_type(self, token: ParserToken) -> str: # todo make it check if token is correct (length & types)
+    def find_token_type(self, token: ParserToken) -> str: # todo make it check if token is correct (length & types) # todo expr_arr 
         match len(token):
             case 0:
                 return "empty"
