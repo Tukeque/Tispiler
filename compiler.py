@@ -1,7 +1,7 @@
 from typing import Any
 from tools import *
 from parse import Parser, ParserToken
-import classes as cls
+import cls
 import config
 
 class Compiler:
