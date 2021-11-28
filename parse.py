@@ -18,7 +18,7 @@ class ParserToken(Sequence):
         if len(self) > 3:
             newline = "\n"
 
-            return f"({self.type}:{newline}{f', {newline}'.join([f'{x.repr()}' for x in self.raw])}{newline})"
+            return f"({self.type}:{newline}{f', {newline}'.join([f'{x}' for x in self.raw])}{newline})"
         else:
             return f"({self.type}: {[x for x in self.raw]})"
 
@@ -155,7 +155,7 @@ class Parser:
         return result
 
 
-    def parse(self) -> list[ParserToken]:
+    def parse(self) -> ParserToken:
         result_1 = self.parenize(self.tokens)
 
         result_2 = self.list_to_token(result_1)
