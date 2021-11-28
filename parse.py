@@ -1,6 +1,5 @@
 from tools import *
 from typing import Any
-from copy import deepcopy as copy
 
 class ParserToken(Sequence):
     def __init__(self, type: str, data: dict[str, Any], raw: list[str | Any]):
