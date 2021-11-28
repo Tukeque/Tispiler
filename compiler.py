@@ -59,8 +59,8 @@ class Compiler:
                     pass
 
                 case "var_def":
-                    name = expr.data["name"]
-                    self.add_var(cls.Var(name, expr.data["type"], self.type_to_width[name], self))
+                    name = expr.data["name"]; t = expr.data["type"]
+                    self.add_var(cls.Var(name, t, self.type_to_width[t], self))
 
                 case "var_free":
                     self.free_var(self.vars[expr.data["keyword"]])

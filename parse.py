@@ -91,7 +91,7 @@ class Parser:
 
             match first:
                 case "free" | "return":
-                    token.data = {"keyword": first}
+                    token.data = {"keyword": token[1]}
 
                     return f"var_{first}"
 
