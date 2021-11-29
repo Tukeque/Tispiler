@@ -82,7 +82,7 @@ expr = parser.parse()
 
 #* compiler
 compiler = Compiler(parser)
-compiler.compile(expr)
+compiler.compile(expr, big=True)
 
 #* output
 compiler.output(out)
