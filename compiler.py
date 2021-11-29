@@ -37,7 +37,7 @@ class Compiler:
 
         return [var.name, "@FREE"]
 
-    def compile(self, expr: ParserToken, expect_result: bool = True) -> list[str]:
+    def compile(self, expr: ParserToken, expect_result: bool = True, big: bool = False) -> list[str]:
         if expr.type == "var_arr" or expr.type == "expr_arr":
             result: list[str] = []
 
@@ -46,7 +46,11 @@ class Compiler:
 
                 result += self.compile(e, expect_result=False) # todo remember to use expect_result
 
-            return result
+            if big:
+                self.main += result
+            else:
+                return result
+
         else:
             result         : list[str] = []
             optional_result: list[str] = []
@@ -90,5 +94,7 @@ class Compiler:
                 return result
 
     def output(self, file_name: str) -> None:
+        result = " ".join(self.funcs + self.main)
+
         with open(file_name, "w") as f:
-            f.write("\n".join(self.funcs + self.main))
+            f.write(result)
