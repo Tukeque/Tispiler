@@ -24,58 +24,70 @@ class Compiler:
         self.parser    = parser
         self.var_names = parser.vars
         self.funcs     = parser.funcs
-        
-    def emit(self, x) -> None:
-        target = self.main if not self.in_func else self.funcs
 
-        if type(x) == str:
-            target.append(x)
-        elif type(x) == list:
-            target += x
-        else:
-            error("cant append something that isnt a string or a list to the output")
-
-    def add_var(self, var: cls.Var) -> None:
+    def add_var(self, var: cls.Var) -> list[str]:
         self.vars[var.name] = var
         self.parser.vars.append(var.name) # add name to the list
 
-        self.emit(f"{var.name} @DEF") # TODO automatic reference counting
+        return [var.name, "@DEF"] # TODO automatic reference counting
 
-    def free_var(self, var: cls.Var) -> None:
+    def free_var(self, var: cls.Var) -> list[str]:
         self.vars.pop(var.name)
         self.parser.vars.remove(var.name) # remove name from the list
 
-        self.emit(f"{var.name} @FREE")
+        return [var.name, "@FREE"]
 
-    def compile(self, expr: ParserToken) -> None: # todo statical return of object thinger
+    def compile(self, expr: ParserToken, expect_result: bool = True) -> list[str]:
         if expr.type == "var_arr" or expr.type == "expr_arr":
+            result: list[str] = []
+
             for e in expr.raw:
                 ssert(type(e) != str, "cant compile a str expression")
 
-                self.compile(e)
+                result += self.compile(e, expect_result=False) # todo remember to use expect_result
+
+            return result
         else:
+            result         : list[str] = []
+            optional_result: list[str] = []
+
             match expr.type:
                 case "var_set":
                     pass
 
                 case "var_def":
                     name = expr.data["name"]; t = expr.data["type"]
-                    self.add_var(cls.Var(name, t, self.type_to_width[t], self))
+
+                    result = self.add_var(cls.Var(name, t, self.type_to_width[t], self))
+                    optional_result = [name]
 
                 case "var_free":
-                    self.free_var(self.vars[expr.data["keyword"]])
+                    name = expr.data["keyword"]
+
+                    result = self.free_var(self.vars[name])
 
                 case "var_return":
                     pass
 
                 case "var_op":
-                    pass
+                    result = [""] # todo shunting yard
 
-                case "var":
-                    pass
+                    return " ".join(result)
+
+                case "var": # todo fill out var # also fix var parsing
+                    if type(expr[0]) == str:
+                        if len(expr[0]) == 1: # its a variable
+                            result = expr[0]
+                    else:
+                        raise NotImplementedError
 
                 case "imm":
                     pass
+
+            if expect_result:
+                return result + optional_result
+            else:
+                return result
 
     def output(self, file_name: str) -> None:
         with open(file_name, "w") as f:
