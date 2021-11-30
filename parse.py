@@ -106,6 +106,13 @@ class Parser:
 
                     return f"{first}_def"
 
+                case "-":
+                    token.data = {
+                        "var": token[1]
+                    }
+
+                    return "var_neg"
+
                 case _:
                     if type(first) == str:
                         if first in self.types:
