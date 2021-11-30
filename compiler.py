@@ -1,11 +1,13 @@
 from typing import Any
 from tools import *
 from parse import Parser, ParserToken
+from shunt import Shunter
 import cls
 import config
 
 class Compiler:
-    parser: Parser
+    parser : Parser
+    shunter: Shunter
     type_to_width = {
         "Num": 1,
         "None": 1
@@ -24,6 +26,8 @@ class Compiler:
         self.parser    = parser
         self.var_names = parser.vars
         self.funcs     = parser.funcs
+
+        self.shunter = Shunter()
 
     def add_var(self, var: cls.Var) -> list[str]:
         self.vars[var.name] = var
@@ -73,20 +77,31 @@ class Compiler:
                 case "var_return":
                     pass
 
-                case "var_op":
-                    result = [""] # todo shunting yard
+                case "var_op": # always used to return
+                    compiled_tokens: list[list[str]] = []
 
-                    return " ".join(result)
+                    for token in expr.raw:
+                        if token in self.parser.ops:
+                            compiled_tokens.append(token)
+                        else:
+                            compiled_tokens.append(self.compile(token))
 
-                case "var": # todo fill out var # also fix var parsing
+                    tokens = self.shunter.tokenize(compiled_tokens)
+                    shuntd = self.shunter.shunt   (tokens)
+                    result = self.shunter.codeize (shuntd)
+
+                case "var_neg": # always used to return
+                    result = ["0", self.compile(expr.data["var"]), "-"]
+
+                case "var": # always used to return # todo fill out var # also fix var parsing
                     if type(expr[0]) == str:
                         if len(expr[0]) == 1: # its a variable
                             result = expr[0]
                     else:
                         raise NotImplementedError
 
-                case "imm":
-                    pass
+                case "imm": # always used to return
+                    result = expr.data["imm"]
 
             if expect_result:
                 return result + optional_result
