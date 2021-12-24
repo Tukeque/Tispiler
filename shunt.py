@@ -68,5 +68,20 @@ class Shunter:
 
         return Reader(output)
 
-    def codeize(self, tokens: Reader[Token]) -> list[str]: # todo write
-        return []
+    def codeize(self, tokens: Reader[Token]) -> list[str]:
+        output: list[str] = []
+
+        while not tokens.finished():
+            token = tokens.read()
+
+            match token.type:
+                case "imm":
+                    output.append(token.get())
+
+                case "var":
+                    output += [token.get(), "@GET"]
+
+                case "op":
+                    output.append(self.convert_op(token.get()))
+
+        return output
