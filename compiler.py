@@ -41,7 +41,12 @@ class Compiler:
 
         return [var.name, "@FREE"]
 
-    def compile(self, expr: ParserToken, expect_result: bool = True, big: bool = False) -> list[str]:
+    def compile(self, expr: ParserToken | str, expect_result: bool = True, big: bool = False) -> list[str]:
+        debug(f"compiling {repr(expr)}")
+
+        if type(expr) == str:
+            return [expr]
+
         if expr.type == "var_arr" or expr.type == "expr_arr":
             result: list[str] = []
 
@@ -84,14 +89,14 @@ class Compiler:
                         if token in self.parser.ops:
                             compiled_tokens.append(token)
                         else:
-                            compiled_tokens.append(self.compile(token))
+                            compiled_tokens.append(self.compile(token, expect_result=True))
 
-                    tokens = self.shunter.tokenize(compiled_tokens)
+                    tokens = self.shunter.tokenize(compiled_tokens, self.parser)
                     shuntd = self.shunter.shunt   (tokens)
                     result = self.shunter.codeize (shuntd)
 
                 case "var_neg": # always used to return
-                    result = ["0", self.compile(expr.data["var"]), "-"]
+                    result = ["0", self.compile(expr.data["var"], expect_result=True), "-"]
 
                 case "var": # always used to return # todo fill out var # also fix var parsing
                     if type(expr[0]) == str:
