@@ -22,8 +22,6 @@ def debug(msg):
     if config.debug:
         print(f"[yellow]\[debug]: {msg}")
 
-        press_any_key()
-
 T = TypeVar("T")
 
 class Reader(Generic[T], Sequence):
