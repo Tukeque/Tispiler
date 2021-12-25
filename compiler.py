@@ -108,13 +108,23 @@ class Compiler:
                 case "imm": # always used to return
                     result = expr.data["imm"]
 
-            if expect_result:
-                return result + optional_result
-            else:
-                return result
+            return self.make_return(result, optional_result, expect_result)
+
+    def make_return(self, result: list[str], optional_result: list[str], expect_result: bool):
+        appendix = (["\n"] if config.debug else []) # atleast this appendix doesnt kill its host :D
+
+        if expect_result:
+            return result + optional_result + appendix
+        else:
+            return result + appendix
 
     def output(self, file_name: str) -> None:
-        result = " ".join(self.funcs + self.main)
+        result = []
+        for x in (self.funcs + self.main):
+            result += [x, " " if x != "\n" else ""]
+
+        result = "".join(result)
+        if result[-1] == "\n": result = result[:-1]
 
         with open(file_name, "w") as f:
             f.write(result)
