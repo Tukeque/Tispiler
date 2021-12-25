@@ -163,18 +163,18 @@ class Token(Generic[T], Sequence):
             "!": 6
         }[operator]
 
-    def __init__(self, type: str, data: list[str] = [], single = None, temp_var: bool = None) -> None:
-        assert type in ["imm", "var", "func", "op", "unary", "paren", "stack", "comma"]
+    def __init__(self, kind: str, data: list[str] | str, temp_var: bool = None) -> None:
+        assert kind in ["imm", "var", "func", "op", "unary", "paren", "stack", "comma"]
 
-        self.type = type
-        if data != None:
+        self.type = kind
+        if type(data) == list:
             self.data = data
-        elif single != None:
-            self.data = [single]
+        elif type(data) == str:
+            self.data = [data]
         else:
             error("intialized without data")
 
-        if type == "op":
+        if kind == "op":
             self.precedence = self.get_precedence(self.get())
             self.associativity = self.get_associativity(self.get())
 
