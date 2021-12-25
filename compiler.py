@@ -41,7 +41,7 @@ class Compiler:
 
         return [var.name, "@FREE"]
 
-    def compile(self, expr: ParserToken | str, expect_result: bool = True, big: bool = False) -> list[str]:
+    def compile(self, expr: ParserToken | str, expect_result: bool = True, big: bool = False, from_arr: bool = False) -> list[str]:
         debug(f"compiling {repr(expr)}")
 
         if type(expr) == str:
@@ -53,7 +53,7 @@ class Compiler:
             for e in expr.raw:
                 ssert(type(e) != str, "cant compile a str expression")
 
-                result += self.compile(e, expect_result=False) # todo remember to use expect_result
+                result += self.compile(e, expect_result=False, from_arr = True)
 
             if big:
                 self.main += result
@@ -108,10 +108,12 @@ class Compiler:
                 case "imm": # always used to return
                     result = expr.data["imm"]
 
-            return self.make_return(result, optional_result, expect_result)
+            return self.make_return(result, optional_result, expect_result, from_arr)
 
-    def make_return(self, result: list[str], optional_result: list[str], expect_result: bool):
-        appendix = (["\n"] if config.debug else [])
+    def make_return(self, result: list[str], optional_result: list[str], expect_result: bool, var_arr: bool):
+        appendix = (["\n"] if config.debug and var_arr else [])
+
+        debug(f"returning {result=}, {optional_result=}, {expect_result=}")
 
         if expect_result:
             return result + optional_result + appendix

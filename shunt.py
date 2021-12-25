@@ -33,6 +33,8 @@ class Shunter:
                         result.append(Token("imm", token))
                     else:
                         result.append(Token("var", token))
+                else:
+                    result.append(Token("imm", " ".join(token)))
 
         return Reader(result)
 
