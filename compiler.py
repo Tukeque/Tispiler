@@ -111,7 +111,7 @@ class Compiler:
             return self.make_return(result, optional_result, expect_result)
 
     def make_return(self, result: list[str], optional_result: list[str], expect_result: bool):
-        appendix = (["\n"] if config.debug else []) # atleast this appendix doesnt kill its host :D
+        appendix = (["\n"] if config.debug else [])
 
         if expect_result:
             return result + optional_result + appendix
