@@ -23,17 +23,20 @@ class Shunter:
         for token in tokens:
             if type(token) == str:
                 if token in parser.ops:
-                    result.append(Token("op",    single=token))
+                    result.append(Token("op",    token))
                 elif token in ["(", ")"]:
-                    result.append(Token("paren", single=token))
-                elif token.isnumeric():
-                    result.append(Token("imm",   single=token))
-            else:
-                result.append(Token("var", single=token))
+                    result.append(Token("paren", token))
+                    
+            elif type(token) == list:
+                if len(token) == 1:
+                    if token[0].isnumeric():
+                        result.append(Token("imm", token))
+                    else:
+                        result.append(Token("var", token))
 
-        return Reader[result]
+        return Reader(result)
 
-    def shunt(self, tokens: Reader[Token]) -> Reader[Token]: # todo test
+    def shunt(self, tokens: Reader[Token]) -> Reader[Token]:
         operators: list[Token] = []
         output   : list[Token] = []
 
