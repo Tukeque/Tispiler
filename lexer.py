@@ -38,7 +38,7 @@ class Lexer:
 
         return Reader(result)
 
-    def lex(self, raw: list[str]) -> Reader[str]: # TODO replace unary
+    def lex(self, raw: list[str]) -> Reader[str]:
         def is_something(x: str):
             return (token.replace(" ", "").replace(self.joiner, "") != "")
 
