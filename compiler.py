@@ -68,23 +68,9 @@ class Compiler:
                 case "var_set": # im gonna do whats called a pro gamer move B)
                     unjoined_src = self.compile(expr.data["source"], expect_result=True)
                     src = self.join(unjoined_src)
-                    
+
                     result = [src, self.join(self.compile(expr.data["dest"], expect_result=True)), "@SET"]
                     optional_result = [unjoined_src[-1]]
-
-                case "var_def":
-                    name = expr.data["name"]; t = expr.data["type"]
-
-                    result = self.add_var(cls.Var(name, t, self.type_to_width[t], self))
-                    optional_result = [name]
-
-                case "var_free":
-                    name = expr.data["keyword"]
-
-                    result = self.free_var(self.vars[name])
-
-                case "var_return":
-                    pass
 
                 case "var_op": # always used to return
                     compiled_tokens: list[list[str]] = []
@@ -101,6 +87,29 @@ class Compiler:
 
                 case "var_neg": # always used to return
                     result = ["0", self.compile(expr.data["var"], expect_result=True), "-"]
+
+                case "var_def":
+                    name = expr.data["name"]; t = expr.data["type"]
+
+                    result = self.add_var(cls.Var(name, t, self.type_to_width[t], self))
+                    optional_result = [name]
+
+                case "var_free":
+                    name = expr.data["keyword"]
+
+                    result = self.free_var(self.vars[name])
+
+                case "var_return":
+                    pass
+
+                case "func_def":
+                    pass
+
+                case "proc_def":
+                    pass
+
+                case "func_call":
+                    pass
 
                 case "var": # always used to return # todo fill out var # also fix var parsing
                     if type(expr[0]) == str:
