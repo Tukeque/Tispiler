@@ -40,7 +40,10 @@ class Parser:
         result: list[str | list] = []
 
         while True:
-            token = self.tokens.read()
+            try:
+                token = self.tokens.read()
+            except:
+                error("mismatched parentheses")
 
             match token:
                 case ")":
