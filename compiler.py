@@ -65,8 +65,12 @@ class Compiler:
             optional_result: list[str] = []
 
             match expr.type:
-                case "var_set":
-                    pass
+                case "var_set": # im gonna do whats called a pro gamer move B)
+                    unjoined_src = self.compile(expr.data["source"], expect_result=True)
+                    src = self.join(unjoined_src)
+                    
+                    result = [src, self.join(self.compile(expr.data["dest"], expect_result=True)), "@SET"]
+                    optional_result = [unjoined_src[-1]]
 
                 case "var_def":
                     name = expr.data["name"]; t = expr.data["type"]
@@ -119,6 +123,9 @@ class Compiler:
             return result + optional_result + appendix
         else:
             return result + appendix
+
+    def join(self, ls: list[str]) -> str:
+        return " ".join(ls)
 
     def output(self, file_name: str) -> None:
         result = []
