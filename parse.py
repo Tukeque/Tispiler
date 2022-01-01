@@ -104,8 +104,8 @@ class Parser:
                     }
 
                     if first == "func":
-                        token.data["ret_type"] = token[2]
-                        token.data["args"    ] = token[3]
+                        token.data["args"    ] = token[2]
+                        token.data["ret_type"] = token[3]
                         token.data["code"    ] = token[4]
                     elif first == "proc":
                         token.data["args"] = token[2]
