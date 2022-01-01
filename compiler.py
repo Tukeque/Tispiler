@@ -29,11 +29,11 @@ class Compiler:
 
         self.shunter = Shunter()
 
-    def add_var(self, var: Var) -> list[str]:
+    def add_var(self, var: Var, in_func: bool) -> list[str]:
         self.vars[var.name] = var
         self.parser.vars.append(var.name) # add name to the list
 
-        return [var.name, "@DEF"] # TODO automatic reference counting
+        return [var.name, "@DEF" if not in_func else "@LOCALDEF"] # TODO automatic reference counting
 
     def free_var(self, var: Var) -> list[str]:
         self.vars.pop(var.name)
@@ -91,7 +91,7 @@ class Compiler:
                 case "var_def":
                     name = expr.data["name"]; t = expr.data["type"]
 
-                    result = self.add_var(Var(name, t, self.type_to_width[t]))
+                    result = self.add_var(Var(name, t, self.type_to_width[t]), in_func)
                     optional_result = [name]
 
                 case "var_free":
@@ -100,7 +100,8 @@ class Compiler:
                     result = self.free_var(self.vars[name])
 
                 case "var_return":
-                    pass
+                    if not in_func: error("returning outside a function")
+                    result = self.compile(expr.data["keyword"], in_func=True, expect_result=True) + ["@RET"]
 
                 case "func_def" | "proc_def":
                     arg_expr: ParserToken = expr.data["args"]
@@ -117,6 +118,8 @@ class Compiler:
                     result = [expr.data["name"], str(arg_count), "@FUNC"] + [f"{x.data['name']} @ARGDEF" for x in args] + self.compile(expr.data["code"], in_func=True, expect_result=True)
 
                     self.funcs[expr.data["name"]] = Func(expr.data["name"], expr.type[:4], args, expr.data["code"], ("void" if expr.type == "func_def" else expr.data["ret_type"]))
+
+                    # todo add returning of function pointer (figure how work?)
 
                 case "func_call":
                     pass
