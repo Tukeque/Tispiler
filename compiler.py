@@ -41,7 +41,7 @@ class Compiler:
 
         return [var.name, "@FREE"]
 
-    def compile(self, expr: ParserToken | str, expect_result: bool = True, big: bool = False, from_arr: bool = False) -> list[str]:
+    def compile(self, expr: ParserToken | str, in_func: bool, expect_result: bool = True, big: bool = False, from_arr: bool = False) -> list[str]:
         debug(f"compiling {repr(expr)}")
 
         if type(expr) == str:
@@ -53,7 +53,7 @@ class Compiler:
             for e in expr.raw:
                 ssert(type(e) != str, "cant compile a str expression")
 
-                result += self.compile(e, expect_result=False, from_arr = True)
+                result += self.compile(e, in_func, expect_result=False, from_arr = True)
 
             if big:
                 self.main += result
@@ -66,10 +66,10 @@ class Compiler:
 
             match expr.type:
                 case "var_set": # im gonna do whats called a pro gamer move B)
-                    unjoined_src = self.compile(expr.data["source"], expect_result=True)
+                    unjoined_src = self.compile(expr.data["source"], in_func, expect_result=True)
                     src = self.join(unjoined_src)
 
-                    result = [src, self.join(self.compile(expr.data["dest"], expect_result=True)), "@SET"]
+                    result = [src, self.join(self.compile(expr.data["dest"], in_func, expect_result=True)), "@SET"]
                     optional_result = [unjoined_src[-1]]
 
                 case "var_op": # always used to return
@@ -79,14 +79,14 @@ class Compiler:
                         if token in self.parser.ops:
                             compiled_tokens.append(token)
                         else:
-                            compiled_tokens.append(self.compile(token, expect_result=True))
+                            compiled_tokens.append(self.compile(token, in_func, expect_result=True))
 
                     tokens = self.shunter.tokenize(compiled_tokens, self.parser)
                     shuntd = self.shunter.shunt   (tokens)
                     result = self.shunter.codeize (shuntd)
 
                 case "var_neg": # always used to return
-                    result = ["0", self.compile(expr.data["var"], expect_result=True), "-"]
+                    result = ["0", self.compile(expr.data["var"], in_func, expect_result=True), "-"]
 
                 case "var_def":
                     name = expr.data["name"]; t = expr.data["type"]
@@ -103,8 +103,19 @@ class Compiler:
                     pass
 
                 case "func_def":
-                    pass
+                    arg_expr: ParserToken = expr.data["args"]
+                    args: list[ParserToken] = []
+                    arg_count = 0
+                    match arg_expr.type:
+                        case "var_def":
+                            arg_count = 1
+                            args = arg_expr
+                        case "var_arr" | "expr_arr":
+                            arg_count = len(arg_expr.raw)
+                            args = arg_expr.raw
 
+                    result = [expr.data["name"], str(arg_count), "@FUNC"] + [f"{x.data['name']} @ARGDEF" for x in args] + self.compile(expr.data["code"], in_func=True, expect_result=True)
+                    
                 case "proc_def":
                     pass
 
