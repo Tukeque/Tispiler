@@ -100,12 +100,16 @@ class Parser:
 
                 case "func" | "proc":
                     token.data = {
-                        "func_type": token[0],
-                        "name"     : token[1],
-                        "ret_type" : token[2],
-                        "args"     : token[3],
-                        "code"     : token[4]
+                        "name"     : token[1]
                     }
+
+                    if first == "func":
+                        token.data["ret_type"] = token[2]
+                        token.data["args"    ] = token[3]
+                        token.data["code"    ] = token[4]
+                    elif first == "proc":
+                        token.data["args"] = token[2]
+                        token.data["code"] = token[3]
 
                     return f"{first}_def"
 
