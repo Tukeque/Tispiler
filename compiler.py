@@ -2,7 +2,7 @@ from typing import Any
 from tools import *
 from parse import Parser, ParserToken
 from shunt import Shunter
-import cls
+from cls import Var, Func
 import config
 
 class Compiler:
@@ -29,13 +29,13 @@ class Compiler:
 
         self.shunter = Shunter()
 
-    def add_var(self, var: cls.Var) -> list[str]:
+    def add_var(self, var: Var) -> list[str]:
         self.vars[var.name] = var
         self.parser.vars.append(var.name) # add name to the list
 
         return [var.name, "@DEF"] # TODO automatic reference counting
 
-    def free_var(self, var: cls.Var) -> list[str]:
+    def free_var(self, var: Var) -> list[str]:
         self.vars.pop(var.name)
         self.parser.vars.remove(var.name) # remove name from the list
 
@@ -91,7 +91,7 @@ class Compiler:
                 case "var_def":
                     name = expr.data["name"]; t = expr.data["type"]
 
-                    result = self.add_var(cls.Var(name, t, self.type_to_width[t], self))
+                    result = self.add_var(Var(name, t, self.type_to_width[t]))
                     optional_result = [name]
 
                 case "var_free":
@@ -102,7 +102,7 @@ class Compiler:
                 case "var_return":
                     pass
 
-                case "func_def":
+                case "func_def" | "proc_def":
                     arg_expr: ParserToken = expr.data["args"]
                     args: list[ParserToken] = []
                     arg_count = 0
@@ -115,9 +115,6 @@ class Compiler:
                             args = arg_expr.raw
 
                     result = [expr.data["name"], str(arg_count), "@FUNC"] + [f"{x.data['name']} @ARGDEF" for x in args] + self.compile(expr.data["code"], in_func=True, expect_result=True)
-                    
-                case "proc_def":
-                    pass
 
                 case "func_call":
                     pass
