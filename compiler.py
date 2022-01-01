@@ -13,19 +13,19 @@ class Compiler:
         "None": 1
     }
 
-    vars : dict[str, Any] = {}
-    funcs: dict[str, Any] = {}
+    vars : dict[str, Var ] = {}
+    funcs: dict[str, Func] = {}
     var_names : list[str]
     func_names: list[str]
 
     main : list[str] = []
-    funcs: list[str] = []
+    func_code: list[str] = []
     in_func: bool    = False
 
     def __init__(self, parser: Parser) -> None:
         self.parser    = parser
         self.var_names = parser.vars
-        self.funcs     = parser.funcs
+        self.func_code = parser.funcs
 
         self.shunter = Shunter()
 
@@ -116,6 +116,8 @@ class Compiler:
 
                     result = [expr.data["name"], str(arg_count), "@FUNC"] + [f"{x.data['name']} @ARGDEF" for x in args] + self.compile(expr.data["code"], in_func=True, expect_result=True)
 
+                    self.funcs[expr.data["name"]] = Func(expr.data["name"], expr.type[:4], args, expr.data["code"], ("void" if expr.type == "func_def" else expr.data["ret_type"]))
+
                 case "func_call":
                     pass
 
@@ -146,7 +148,7 @@ class Compiler:
 
     def output(self, file_name: str) -> None:
         result = []
-        for x in (self.funcs + self.main):
+        for x in (self.func_code + self.main):
             result += [x, " " if x != "\n" else ""]
 
         result = "".join(result)
