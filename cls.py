@@ -8,7 +8,7 @@ class Var:
         self.width    = width
 
 class Func:
-    def __init__(self, name: str, func_type: str, args: list[ParserToken], code: ParserToken, ret_type: str = "void"):
+    def __init__(self, name: str, func_type: str, args: list[ParserToken], code: ParserToken, ret_type):
         self.name = name
         self.func_type = func_type
         self.args = args
