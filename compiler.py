@@ -115,7 +115,7 @@ class Compiler:
                             arg_count = len(arg_expr.raw)
                             args = arg_expr.raw
 
-                    result = [expr.data["name"], str(arg_count), "@FUNC"] + [f"{x.data['name']} @ARGDEF" for x in args] + self.compile(expr.data["code"], in_func=True, expect_result=True)
+                    result = [expr.data["name"], str(arg_count), "@FUNC"] + [f"{x.data['name']} @ARGDEF" for x in args] + (["\n"] if config.debug else []) + self.compile(expr.data["code"], in_func=True, expect_result=True)
 
                     self.funcs[expr.data["name"]] = Func(expr.data["name"], expr.type[:4], args, expr.data["code"], ("void" if expr.type == "func_def" else expr.data["ret_type"]))
 
