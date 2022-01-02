@@ -41,11 +41,21 @@ class Compiler:
 
         return [var.name, "@FREE"]
 
+    def shunt(self, compiled_tokens: list[list[str]] | str):
+        if type(compiled_tokens) == str:
+            compiled_tokens = [[compiled_tokens]]
+
+        tokens = self.shunter.tokenize(compiled_tokens, self.parser)
+        shuntd = self.shunter.shunt   (tokens)
+        result = self.shunter.codeize (shuntd)
+
+        return result
+
     def compile(self, expr: ParserToken | str, in_func: bool, expect_result: bool = True, big: bool = False, from_arr: bool = False) -> list[str]:
         debug(f"compiling {repr(expr)}")
 
         if type(expr) == str:
-            return [expr]
+            return self.shunt(expr)
 
         if expr.type == "var_arr" or expr.type == "expr_arr":
             result: list[str] = []
@@ -81,9 +91,7 @@ class Compiler:
                         else:
                             compiled_tokens.append(self.compile(token, in_func, expect_result=True))
 
-                    tokens = self.shunter.tokenize(compiled_tokens, self.parser)
-                    shuntd = self.shunter.shunt   (tokens)
-                    result = self.shunter.codeize (shuntd)
+                    result = self.shunt(compiled_tokens)
 
                 case "var_neg": # always used to return
                     result = ["0", self.compile(expr.data["var"], in_func, expect_result=True), "-"]
@@ -127,7 +135,7 @@ class Compiler:
                 case "var": # always used to return # todo fill out var # also fix var parsing
                     if type(expr[0]) == str:
                         if len(expr[0]) == 1: # its a variable
-                            result = expr[0]
+                            result = self.shunt(expr[0])
                     else:
                         raise NotImplementedError
 
