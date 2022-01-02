@@ -140,7 +140,7 @@ class Compiler:
                         raise NotImplementedError
 
                 case "imm": # always used to return
-                    result = expr.data["imm"]
+                    result = self.shunt(expr.data["imm"])
 
             return self.make_return(result, optional_result, expect_result, from_arr)
 
